@@ -1,5 +1,12 @@
-import type { MoviesResponse } from "../types/movie";
+import type { Movie } from "../types/movie";
 import axios from "axios";
+
+export interface MoviesResponse {
+  page: number;
+  results: Movie[];
+  total_pages: number;
+  total_results: number;
+}
 
 const TOKEN = import.meta.env.VITE_TMDB_TOKEN;
 export async function fetchMovies(query: string): Promise<MoviesResponse> {
