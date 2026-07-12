@@ -6,30 +6,34 @@ interface SearchBarProps {
 }
 
 export default function SearchBar({ onSubmit }: SearchBarProps) {
-  const handleSubmit = (formData: FormData) => {
-    const query = (formData.get("query") as string).trim();
-    if (!query) {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const query = new FormData(form).get("query") as string;
+
+    if (!query.trim()) {
       toast.error("Please enter your search query.");
       return;
     }
-    onSubmit(query);
+
+    onSubmit(query.trim());
+    form.reset();
   };
+
   return (
     <header className={styles.header}>
-      {""}
       <div className={styles.container}>
-        {""}
         <a
           className={styles.link}
           href="https://www.themoviedb.org/"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Powered by TMDB{""}
+          Powered by TMDB
         </a>
-        {""}
-        <form action={handleSubmit} className={styles.form}>
-          {""}
+
+        <form className={styles.form} onSubmit={handleSubmit}>
           <input
             className={styles.input}
             type="text"
@@ -38,13 +42,11 @@ export default function SearchBar({ onSubmit }: SearchBarProps) {
             placeholder="Search movies..."
             autoFocus
           />
-          {""}
+
           <button className={styles.button} type="submit">
-            Search{""}
+            Search
           </button>
-          {""}
         </form>
-        {""}
       </div>
     </header>
   );

@@ -1,41 +1,63 @@
-// import React from "react";
-import SearchBar from "../SearchBar/SearchBar";
-// import styles from "./App.module.css";
 import { useState } from "react";
-import { Toaster } from "react-hot-toast";
-import MovieGrid from "../MovieGrid/MovieGrid.tsx";
-import type { Movie } from "../../types/movie";
+import { Toaster, toast } from "react-hot-toast";
+
+import SearchBar from "../SearchBar/SearchBar";
+import MovieGrid from "../MovieGrid/MovieGrid";
 import Loader from "../Loader/Loader";
+import ErrorMessage from "../ErrorMessage/ErrorMessage";
+import MovieModal from "../MovieModal/MovieModal";
+
+import { fetchMovies } from "../../services/movieService";
+import type { Movie } from "../../types/movie";
+
+import styles from "./App.module.css";
 
 export default function App() {
+  const [movies, setMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
   const handleSearch = async (query: string) => {
-    setIsLoading(true);
-    console.log(query);
-    // Simulate an API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
-  };
-  const movies: Movie[] = [
-    {
-      id: 1,
-      title: "Batman Begins",
-      poster_path: "/8RW2runSEc34IwKN2D1aPcJd2UL.jpg",
-    },
-  ];
-  const handleSelectMovie = (movie: Movie) => {
-    console.log(movie);
+    try {
+      setMovies([]);
+      setError(false);
+      setIsLoading(true);
+
+      const data = await fetchMovies(query);
+
+      if (data.results.length === 0) {
+        toast.error("No movies found for your request.");
+        return;
+      }
+
+      setMovies(data.results);
+    } catch {
+      setError(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div>
+    <div className={styles.app}>
       <SearchBar onSubmit={handleSearch} />
+
       <Toaster position="top-center" />
+
       {isLoading && <Loader />}
 
-      {!isLoading && movies.length > 0 && (
-        <MovieGrid movies={movies} onSelect={handleSelectMovie} />
+      {error && <ErrorMessage />}
+
+      {!isLoading && !error && movies.length > 0 && (
+        <MovieGrid movies={movies} onSelect={setSelectedMovie} />
+      )}
+
+      {selectedMovie && (
+        <MovieModal
+          movie={selectedMovie}
+          onClose={() => setSelectedMovie(null)}
+        />
       )}
     </div>
   );
